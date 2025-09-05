@@ -1,0 +1,116 @@
+.attendee-list {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.attendee-list-header {
+  margin-bottom: var(--spacing-lg);
+}
+
+.attendee-list-title {
+  font-size: var(--text-xl);
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.attendee-list-loading,
+.attendee-list-error,
+.attendee-list-empty {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  color: var(--text-muted);
+}
+
+.error-message {
+  color: var(--error-color);
+}
+
+.attendee-table-container {
+  overflow-x: auto;
+  border-radius: var(--border-radius-lg);
+  border: 1px solid #e5e7eb;
+}
+
+.attendee-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--background-color);
+}
+
+.attendee-table th {
+  background-color: var(--surface-color);
+  padding: var(--spacing-md);
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-color);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.attendee-table td {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.attendee-row:hover {
+  background-color: var(--surface-color);
+}
+
+.attendee-name {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.attendee-email {
+  color: var(--text-muted);
+}
+
+.attendee-wallet {
+  font-family: monospace;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.attendee-date {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.status-badge {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.status-registered {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-minted {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+@media (max-width: 768px) {
+  .attendee-table {
+    font-size: var(--text-sm);
+  }
+
+  .attendee-table th,
+  .attendee-table td {
+    padding: var(--spacing-sm);
+  }
+
+  .attendee-table-container {
+    margin: 0 -var(--spacing-md);
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+}

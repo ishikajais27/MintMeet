@@ -1,0 +1,118 @@
+.event-detail-loading,
+.event-detail-error {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.event-detail-error h2 {
+  color: var(--error-color);
+  margin-bottom: var(--spacing-md);
+}
+
+.event-detail-header {
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.event-detail-title {
+  font-size: var(--text-3xl);
+  color: var(--text-color);
+  margin: var(--spacing-lg) 0 var(--spacing-sm);
+}
+
+.event-detail-date {
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+}
+
+.event-detail-content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--spacing-2xl);
+  align-items: start;
+}
+
+.event-detail-info {
+  position: sticky;
+  top: var(--spacing-xl);
+}
+
+.event-image {
+  margin-bottom: var(--spacing-xl);
+}
+
+.event-image img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.event-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+
+.stat-card {
+  background-color: var(--surface-color);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-number {
+  display: block;
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-xs);
+}
+
+.stat-label {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.event-detail-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
+}
+
+@media (max-width: 1024px) {
+  .event-detail-content {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xl);
+  }
+
+  .event-detail-info {
+    position: static;
+    order: 2;
+  }
+
+  .event-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .event-detail-title {
+    font-size: var(--text-2xl);
+  }
+
+  .event-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .event-image img {
+    height: 200px;
+  }
+}

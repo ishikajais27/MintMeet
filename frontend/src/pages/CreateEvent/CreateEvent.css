@@ -1,0 +1,24 @@
+.create-event-header {
+  margin-bottom: var(--spacing-2xl);
+  text-align: center;
+}
+
+.create-event-title {
+  font-size: var(--text-3xl);
+  color: var(--text-color);
+  margin-bottom: var(--spacing-md);
+}
+
+.create-event-subtitle {
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.create-event-content {
+  background-color: var(--surface-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-2xl);
+  box-shadow: var(--shadow-sm);
+}

@@ -1,0 +1,82 @@
+.mint-status {
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  margin: var(--spacing-lg) 0;
+  border-left: 4px solid;
+}
+
+.mint-status-content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.mint-status-icon {
+  flex-shrink: 0;
+  font-size: var(--text-xl);
+}
+
+.mint-status-info {
+  flex: 1;
+}
+
+.mint-status-message {
+  margin: 0;
+  font-weight: 500;
+  margin-bottom: var(--spacing-sm);
+}
+
+.mint-transaction {
+  font-size: var(--text-sm);
+}
+
+.mint-transaction-label {
+  color: var(--text-muted);
+  margin-right: var(--spacing-sm);
+}
+
+.mint-transaction-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-family: monospace;
+}
+
+.mint-transaction-link:hover {
+  text-decoration: underline;
+}
+
+.mint-status--info {
+  background-color: #dbeafe;
+  border-color: #3b82f6;
+  color: #1e40af;
+}
+
+.mint-status--processing {
+  background-color: #fef3c7;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.mint-status--success {
+  background-color: #d1fae5;
+  border-color: #10b981;
+  color: #065f46;
+}
+
+.mint-status--error {
+  background-color: #fee2e2;
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+
+@media (max-width: 768px) {
+  .mint-status {
+    padding: var(--spacing-md);
+  }
+
+  .mint-status-content {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--spacing-sm);
+  }
+}

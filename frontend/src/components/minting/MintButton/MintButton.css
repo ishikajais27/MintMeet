@@ -1,0 +1,37 @@
+.mint-button {
+  min-width: 160px;
+  transition: all 0.3s ease;
+}
+
+.mint-button--success {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+}
+
+.mint-button--success:hover:not(:disabled) {
+  background-color: #059669;
+  border-color: #059669;
+}
+
+/* Custom button variants */
+.btn--success {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+  color: white;
+}
+
+.btn--success:hover:not(:disabled) {
+  background-color: #059669;
+  border-color: #059669;
+}
+
+.btn--error {
+  background-color: var(--error-color);
+  border-color: var(--error-color);
+  color: white;
+}
+
+.btn--error:hover:not(:disabled) {
+  background-color: #dc2626;
+  border-color: #dc2626;
+}

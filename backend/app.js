@@ -72,7 +72,7 @@ app.use(
       // Allow requests from your frontend origin
       res.setHeader(
         'Access-Control-Allow-Origin',
-        FRONTEND_URL || 'http://localhost:5173'
+        FRONTEND_URL || 'https://mint-meet.vercel.app/'
       )
       res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
     },
@@ -84,7 +84,7 @@ app.use(
     setHeaders: (res, path) => {
       res.setHeader(
         'Access-Control-Allow-Origin',
-        FRONTEND_URL || 'http://localhost:5173'
+        FRONTEND_URL || 'https://mint-meet.vercel.app/'
       )
       res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
     },

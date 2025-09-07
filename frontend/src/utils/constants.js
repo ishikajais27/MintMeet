@@ -1,6 +1,7 @@
 // API Configuration
 
-export const API_BASE_URL = 'http://localhost:5000'
+export const API_BASE_URL = 'https://mintmeet.onrender.com'
+//|| 'http://localhost:5000'
 
 // Minting Statuses
 export const MINT_STATUSES = {

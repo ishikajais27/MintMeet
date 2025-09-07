@@ -13,7 +13,58 @@ const { MONGODB_URI, FRONTEND_URL } = require('./config/constants')
 
 // Import middleware
 const { validateEvent, validateAttendee } = require('./middleware/validation')
+app.use(
+  cors({
+    // origin: function (origin, callback) {
+    //   // Allow requests from localhost with any port and any protocol
+    //   const allowedOrigins = [
+    //     'https://mint-meet.vercel.app/',
+    //     'http://localhost:5173',
+    //     'http://localhost:5173/',
+    //     'http://localhost:3000',
+    //     'http://localhost:3000/',
+    //     'https://localhost:5173',
+    //     'https://localhost:5173/',
+    //   ]
 
+    //   // Allow requests with no origin (like mobile apps, Postman, etc.)
+    //   if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    //     callback(null, true)
+    //   } else {
+    //     console.log('CORS blocked origin:', origin)
+    //     callback(new Error('Not allowed by CORS'))
+    //   }
+    // },
+    // credentials: true,
+    // methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    // allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    origin: function (origin, callback) {
+      // Allow requests from these origins
+      const allowedOrigins = [
+        'https://mint-meet.vercel.app', // REMOVED trailing slash
+        'http://localhost:5173',
+        'http://localhost:3000',
+      ]
+
+      // Allow requests with no origin (like mobile apps, Postman, etc.)
+      if (!origin) return callback(null, true)
+
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true)
+      } else {
+        console.log('CORS blocked origin:', origin)
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  })
+)
+// Handle preflight requests
+app.options('*', cors())
 // Import routes
 const eventRoutes = require('./routes/eventRoutes')
 const attendeeRoutes = require('./routes/attendeeRoutes')
@@ -33,33 +84,56 @@ if (process.env.NODE_ENV !== 'test') {
 // Middleware - FIXED CORS configuration
 app.use(helmet())
 app.use(morgan('combined'))
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests from localhost with any port and any protocol
-      const allowedOrigins = [
-        'https://mint-meet.vercel.app/',
-        'http://localhost:5173',
-        'http://localhost:5173/',
-        'http://localhost:3000',
-        'http://localhost:3000/',
-        'https://localhost:5173',
-        'https://localhost:5173/',
-      ]
+// app.use(
+//   cors({
+//     // origin: function (origin, callback) {
+//     //   // Allow requests from localhost with any port and any protocol
+//     //   const allowedOrigins = [
+//     //     'https://mint-meet.vercel.app/',
+//     //     'http://localhost:5173',
+//     //     'http://localhost:5173/',
+//     //     'http://localhost:3000',
+//     //     'http://localhost:3000/',
+//     //     'https://localhost:5173',
+//     //     'https://localhost:5173/',
+//     //   ]
 
-      // Allow requests with no origin (like mobile apps, Postman, etc.)
-      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true)
-      } else {
-        console.log('CORS blocked origin:', origin)
-        callback(new Error('Not allowed by CORS'))
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  })
-)
+//     //   // Allow requests with no origin (like mobile apps, Postman, etc.)
+//     //   if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+//     //     callback(null, true)
+//     //   } else {
+//     //     console.log('CORS blocked origin:', origin)
+//     //     callback(new Error('Not allowed by CORS'))
+//     //   }
+//     // },
+//     // credentials: true,
+//     // methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+//     // allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+//     origin: function (origin, callback) {
+//       // Allow requests from these origins
+//       const allowedOrigins = [
+//         'https://mint-meet.vercel.app', // REMOVED trailing slash
+//         'http://localhost:5173',
+//         'http://localhost:3000',
+//       ]
+
+//       // Allow requests with no origin (like mobile apps, Postman, etc.)
+//       if (!origin) return callback(null, true)
+
+//       if (allowedOrigins.indexOf(origin) !== -1) {
+//         callback(null, true)
+//       } else {
+//         console.log('CORS blocked origin:', origin)
+//         callback(new Error('Not allowed by CORS'))
+//       }
+//     },
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+//     allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin'],
+//     preflightContinue: false,
+//     optionsSuccessStatus: 204,
+//   })
+// )
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 

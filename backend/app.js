@@ -38,6 +38,7 @@ app.use(
     origin: function (origin, callback) {
       // Allow requests from localhost with any port and any protocol
       const allowedOrigins = [
+        'https://mint-meet.vercel.app/',
         'http://localhost:5173',
         'http://localhost:5173/',
         'http://localhost:3000',

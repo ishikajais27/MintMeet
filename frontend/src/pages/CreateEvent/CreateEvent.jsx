@@ -16,23 +16,33 @@
 
 //   const handleSubmit = async (eventData) => {
 //     try {
-//       // Clear any previous notifications
-//       setNotification({ show: false, message: '', type: '' })
+//       // Make sure all required fields are present
+//       if (!eventData.name || !eventData.date || !eventData.organizer) {
+//         throw new Error(
+//           'Event name is required, Valid event date is required (ISO format), Organizer name is required'
+//         )
+//       }
 
-//       const result = await createEvent(eventData)
+//       // Format date to ISO string if needed
+//       const formattedEventData = {
+//         ...eventData,
+//         date: eventData.date.toISOString
+//           ? eventData.date.toISOString()
+//           : eventData.date,
+//       }
 
+//       await createEvent(formattedEventData)
+
+//       // Show success notification
 //       setNotification({
 //         show: true,
 //         message: 'Event created successfully!',
 //         type: 'success',
 //       })
 
-//       // Redirect or clear form after success
-//       console.log('Event created:', result)
-
-//       // Optional: Redirect after a delay
+//       // Redirect after a delay
 //       setTimeout(() => {
-//         navigate('/dashboard') // or wherever you want to redirect
+//         navigate('/dashboard')
 //       }, 2000)
 //     } catch (error) {
 //       console.error('Error in CreateEvent:', error)
@@ -40,7 +50,7 @@
 //       // Display error notification
 //       setNotification({
 //         show: true,
-//         message: error.response?.data?.message || 'Failed to create event',
+//         message: error.message || 'Failed to create event',
 //         type: 'error',
 //       })
 //     }
@@ -101,13 +111,20 @@ const CreateEvent = () => {
     type: '',
   })
 
-  const handleSubmit = async (eventData) => {
+  const handleSubmit = async (formData) => {
     try {
-      // Clear any previous notifications
-      setNotification({ show: false, message: '', type: '' })
+      // Make sure all required fields are present
+      if (
+        !formData.get('name') ||
+        !formData.get('date') ||
+        !formData.get('organizer')
+      ) {
+        throw new Error('Event name, date, and organizer are required')
+      }
 
-      const result = await createEvent(eventData)
+      await createEvent(formData)
 
+      // Show success notification
       setNotification({
         show: true,
         message: 'Event created successfully!',

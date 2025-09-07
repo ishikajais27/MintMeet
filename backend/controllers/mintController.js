@@ -1,11 +1,47 @@
 const Attendee = require('../models/Attendee')
 const Event = require('../models/Event')
 const Transaction = require('../models/Transaction')
-const { mintNFT, batchMintNFTs } = require('../utils/verbwire')
 const { generateApiResponse } = require('../utils/helpers')
 const { sendBadgeEmail } = require('../utils/emailService')
 const { spawn } = require('child_process')
 const path = require('path')
+const verbwireService = require('../utils/verbwireService')
+const verbwireConfig = require('../config/verbwire')
+
+// Test Verbwire connection endpoint
+const testVerbwireConnection = async (req, res) => {
+  try {
+    const result = await verbwireService.testConnection()
+
+    if (result.success) {
+      res
+        .status(200)
+        .json(generateApiResponse(true, result.message, result.data))
+    } else {
+      res
+        .status(500)
+        .json(
+          generateApiResponse(
+            false,
+            'Verbwire connection failed',
+            null,
+            result.error
+          )
+        )
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json(
+        generateApiResponse(
+          false,
+          'Error testing Verbwire connection',
+          null,
+          error.message
+        )
+      )
+  }
+}
 
 // Mint badge for a single attendee
 const mintBadgeForAttendee = async (req, res) => {
@@ -65,36 +101,33 @@ const mintBadgeForAttendee = async (req, res) => {
         attendee.eventId.name
       )
 
-      // Prepare metadata for minting
+      // Prepare metadata for minting - CORRECT VERBWIRE FORMAT
       const metadata = {
-        allowPlatformToOperateToken: true,
+        name: `${attendee.eventId.name} - ${attendee.name}'s Badge`,
+        description: `Proof of attendance badge for ${attendee.eventId.name}`,
+        image: badgeImagePath,
+        attributes: [
+          {
+            trait_type: 'Event',
+            value: attendee.eventId.name,
+          },
+          {
+            trait_type: 'Attendee',
+            value: attendee.name,
+          },
+          {
+            trait_type: 'Attendance Date',
+            value: new Date().toISOString(),
+          },
+        ],
         recipientAddress: attendee.walletAddress,
-        metadata: {
-          name: `${attendee.eventId.name} - ${attendee.name}'s Badge`,
-          description: `Proof of attendance badge for ${attendee.eventId.name}`,
-          image: badgeImagePath,
-          attributes: [
-            {
-              trait_type: 'Event',
-              value: attendee.eventId.name,
-            },
-            {
-              trait_type: 'Attendee',
-              value: attendee.name,
-            },
-            {
-              trait_type: 'Attendance Date',
-              value: new Date().toISOString(),
-            },
-          ],
-        },
       }
 
       // Mint NFT using Verbwire
-      const mintResult = await mintNFT(metadata)
+      const mintResult = await verbwireService.mintNFT(metadata)
 
       if (!mintResult.success) {
-        throw new Error(mintResult.error)
+        throw new Error(mintResult.error || 'Failed to mint NFT')
       }
 
       // Update transaction record
@@ -106,11 +139,21 @@ const mintBadgeForAttendee = async (req, res) => {
       await transaction.save()
 
       // Update attendee record
+      // attendee.badgeImage = badgeImagePath // Store the image URL
+      // await attendee.save()
+      // attendee.hasReceivedBadge = true
+      // attendee.badgeMintedAt = new Date()
+      // attendee.nftTokenId = mintResult.data.nft_token_id
+      // attendee.nftTransactionHash = mintResult.data.transaction_hash
+      // await attendee.save()
+      // In mintBadgeForAttendee function - fix the duplicate save issue
+      // Update attendee record - FIXED: Only save once with all changes
+      attendee.badgeImage = badgeImagePath // Store the image URL
       attendee.hasReceivedBadge = true
       attendee.badgeMintedAt = new Date()
       attendee.nftTokenId = mintResult.data.nft_token_id
       attendee.nftTransactionHash = mintResult.data.transaction_hash
-      await attendee.save()
+      await attendee.save() // Save only once with all changes
 
       // Send notification email
       const nftLink = `https://testnet.verbwire.com/token/${mintResult.data.nft_token_id}`
@@ -129,7 +172,17 @@ const mintBadgeForAttendee = async (req, res) => {
       transaction.completedAt = new Date()
       await transaction.save()
 
-      throw mintError
+      console.error('Minting error:', mintError)
+      res
+        .status(500)
+        .json(
+          generateApiResponse(
+            false,
+            'Failed to mint badge',
+            null,
+            mintError.message
+          )
+        )
     }
   } catch (error) {
     console.error('Error minting badge:', error)
@@ -194,35 +247,41 @@ const batchMintBadges = async (req, res) => {
         await transaction.save()
 
         // Generate personalized badge image
+        // const badgeImagePath = await generateBadgeImage(
+        //   event.templateImage,
+        //   attendee.name,
+        //   event.name
+        // )
         const badgeImagePath = await generateBadgeImage(
           event.templateImage,
           attendee.name,
           event.name
         )
 
-        // Prepare metadata
+        // Update attendee with badge image URL
+        attendee.badgeImage = badgeImagePath
+        await attendee.save()
+
+        // CORRECT VERBWIRE FORMAT:
         const metadata = {
-          allowPlatformToOperateToken: true,
+          name: `${event.name} - ${attendee.name}'s Badge`,
+          description: `Proof of attendance badge for ${event.name}`,
+          image: badgeImagePath,
+          attributes: [
+            {
+              trait_type: 'Event',
+              value: event.name,
+            },
+            {
+              trait_type: 'Attendee',
+              value: attendee.name,
+            },
+          ],
           recipientAddress: attendee.walletAddress,
-          metadata: {
-            name: `${event.name} - ${attendee.name}'s Badge`,
-            description: `Proof of attendance badge for ${event.name}`,
-            image: badgeImagePath,
-            attributes: [
-              {
-                trait_type: 'Event',
-                value: event.name,
-              },
-              {
-                trait_type: 'Attendee',
-                value: attendee.name,
-              },
-            ],
-          },
         }
 
         // Mint NFT
-        const mintResult = await mintNFT(metadata)
+        const mintResult = await verbwireService.mintNFT(metadata)
 
         if (mintResult.success) {
           // Update records
@@ -250,7 +309,7 @@ const batchMintBadges = async (req, res) => {
             transactionId: mintResult.data.transaction_id,
           })
         } else {
-          throw new Error(mintResult.error)
+          throw new Error(mintResult.error || 'Minting failed')
         }
       } catch (error) {
         batchResults.failed++
@@ -347,6 +406,7 @@ const getMintingStatus = async (req, res) => {
 }
 
 module.exports = {
+  testVerbwireConnection,
   mintBadgeForAttendee,
   batchMintBadges,
   getMintingStatus,

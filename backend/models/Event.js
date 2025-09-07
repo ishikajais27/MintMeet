@@ -15,6 +15,7 @@ const eventSchema = new mongoose.Schema({
     type: Date,
     required: [true, 'Event date is required'],
   },
+  // In models/Event.js
   organizer: {
     type: String,
     required: [true, 'Organizer name is required'],

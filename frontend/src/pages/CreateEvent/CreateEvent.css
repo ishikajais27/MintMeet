@@ -1,3 +1,4 @@
+/* CreateEvent.css */
 .create-event-header {
   margin-bottom: var(--spacing-2xl);
   text-align: center;
@@ -5,8 +6,9 @@
 
 .create-event-title {
   font-size: var(--text-3xl);
-  color: var(--text-color);
+  color: var(--color-title);
   margin-bottom: var(--spacing-md);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .create-event-subtitle {
@@ -17,8 +19,9 @@
 }
 
 .create-event-content {
-  background-color: var(--surface-color);
+  background-color: rgba(249, 250, 251, 0.9);
   border-radius: var(--border-radius-lg);
   padding: var(--spacing-2xl);
   box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(5px);
 }

@@ -1,3 +1,4 @@
+/* Dashboard.css */
 .dashboard-header {
   display: flex;
   justify-content: space-between;
@@ -14,8 +15,9 @@
 
 .dashboard-title {
   font-size: var(--text-3xl);
-  color: var(--text-color);
+  color: var(--color-title);
   margin-bottom: var(--spacing-sm);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .dashboard-subtitle {

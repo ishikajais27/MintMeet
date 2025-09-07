@@ -1,16 +1,26 @@
+/* src/assets/styles/variables.css */
 :root {
   /* Colors */
   --primary-color: #6366f1;
   --primary-hover: #4f46e5;
   --secondary-color: #f3f4f6;
   --accent-color: #10b981;
-  --background-color: #ffffff;
-  --surface-color: #f9fafb;
-  --text-color: #1f2937;
-  --text-muted: #6b7280;
+  --background-color: #000000;
+  --surface-color: rgba(30, 30, 30, 0.95);
+  --text-color: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.8);
   --error-color: #ef4444;
   --success-color: #10b981;
   --warning-color: #f59e0b;
+
+  --color-text: #fff;
+  --color-bg: #000;
+  --color-link: #fff;
+  --color-link-hover: #ac1122;
+  --color-info: #ac1122;
+  --color-title: #fff;
+  --color-subtitle: #fff;
+  --color-subtitle-bg: #ac1122;
 
   /* Spacing */
   --spacing-xs: 0.25rem;

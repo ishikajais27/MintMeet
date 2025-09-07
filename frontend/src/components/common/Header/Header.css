@@ -1,5 +1,7 @@
+/* Header.css */
 .header {
-  background-color: var(--background-color);
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
   box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
@@ -26,7 +28,7 @@
 }
 
 .header-nav__link {
-  color: var(--text-muted);
+  color: var(--color-link);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s ease;
@@ -34,7 +36,7 @@
 }
 
 .header-nav__link:hover {
-  color: var(--text-color);
+  color: var(--color-link-hover);
 }
 
 .header-nav__link--active {

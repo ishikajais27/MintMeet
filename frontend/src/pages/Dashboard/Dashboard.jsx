@@ -13,9 +13,8 @@
 //     fetchEvents()
 //   }, [fetchEvents])
 
-//   const handleRetry = () => {
-//     fetchEvents()
-//   }
+//   // Handle both response formats
+//   const eventList = events?.data || events || []
 
 //   return (
 //     <div className="dashboard">
@@ -35,7 +34,11 @@
 //         <Notification message={error} type="error" isVisible={!!error} />
 
 //         <div className="dashboard-content">
-//           <EventList events={events} loading={loading} error={error} />
+//           <EventList
+//             events={eventList} // Use the properly formatted event list
+//             loading={loading}
+//             error={error}
+//           />
 
 //           {error && (
 //             <div className="dashboard-retry">
@@ -49,7 +52,6 @@
 //     </div>
 //   )
 // }
-
 // export default Dashboard
 import React, { useEffect } from 'react'
 import { Link } from 'react-router-dom'
@@ -60,7 +62,7 @@ import Notification from '../../components/common/Notification/Notification'
 import './Dashboard.css'
 
 const Dashboard = () => {
-  const { events, loading, error, fetchEvents } = useEvents()
+  const { events, loading, error, fetchEvents, deleteEvent } = useEvents()
 
   useEffect(() => {
     fetchEvents()
@@ -68,6 +70,16 @@ const Dashboard = () => {
 
   const handleRetry = () => {
     fetchEvents()
+  }
+
+  const handleDeleteEvent = async (eventId) => {
+    try {
+      await deleteEvent(eventId)
+      // Refresh the events list after deletion
+      fetchEvents()
+    } catch (error) {
+      console.error('Failed to delete event:', error)
+    }
   }
 
   return (
@@ -92,6 +104,7 @@ const Dashboard = () => {
             events={events.data || events} // Handle both response formats
             loading={loading}
             error={error}
+            onDeleteEvent={handleDeleteEvent}
           />
 
           {error && (

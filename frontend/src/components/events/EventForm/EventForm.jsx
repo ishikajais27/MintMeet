@@ -8,7 +8,7 @@
 //   const [formData, setFormData] = useState({
 //     name: '',
 //     date: '',
-//     organizer: '',
+//     organizer: '', // Ensure this is initialized as empty string
 //     image: null,
 //   })
 //   const [errors, setErrors] = useState({})
@@ -24,7 +24,8 @@
 //     if (name === 'image') {
 //       setFormData((prev) => ({ ...prev, [name]: files[0] }))
 //     } else {
-//       setFormData((prev) => ({ ...prev, [name]: value }))
+//       // Ensure we're setting a string value, not undefined
+//       setFormData((prev) => ({ ...prev, [name]: value || '' }))
 //     }
 
 //     // Clear error when user starts typing
@@ -45,9 +46,11 @@
 //     } else if (new Date(formData.date) < new Date()) {
 //       newErrors.date = 'Event date must be in the future'
 //     }
+
 //     if (!formData.organizer.trim()) {
 //       newErrors.organizer = 'Organizer name is required'
 //     }
+
 //     if (!formData.image) {
 //       newErrors.image = 'Event image is required'
 //     }
@@ -71,9 +74,19 @@
 //         type: 'success',
 //       })
 
-//       // Reset form
-//       setFormData({ name: '', date: '', image: null })
-//       e.target.reset()
+//       // Reset form - ensure all fields are set to empty strings
+//       setFormData({
+//         name: '',
+//         date: '',
+//         organizer: '',
+//         image: null,
+//       })
+
+//       // Reset the file input
+//       const fileInput = document.getElementById('image')
+//       if (fileInput) {
+//         fileInput.value = ''
+//       }
 
 //       // Hide notification after 3 seconds
 //       setTimeout(
@@ -117,21 +130,6 @@
 //         </div>
 
 //         <div className="form-group">
-//           <label htmlFor="date" className="form-label">
-//             Event Date *
-//           </label>
-//           <input
-//             type="date"
-//             id="date"
-//             name="date"
-//             value={formData.date}
-//             onChange={handleChange}
-//             className={`form-input ${errors.date ? 'form-input--error' : ''}`}
-//             disabled={loading}
-//           />
-//           {errors.date && <span className="form-error">{errors.date}</span>}
-//         </div>
-//         <div className="form-group">
 //           <label htmlFor="organizer" className="form-label">
 //             Organizer Name *
 //           </label>
@@ -150,6 +148,22 @@
 //           {errors.organizer && (
 //             <span className="form-error">{errors.organizer}</span>
 //           )}
+//         </div>
+
+//         <div className="form-group">
+//           <label htmlFor="date" className="form-label">
+//             Event Date *
+//           </label>
+//           <input
+//             type="date"
+//             id="date"
+//             name="date"
+//             value={formData.date}
+//             onChange={handleChange}
+//             className={`form-input ${errors.date ? 'form-input--error' : ''}`}
+//             disabled={loading}
+//           />
+//           {errors.date && <span className="form-error">{errors.date}</span>}
 //         </div>
 
 //         <div className="form-group">
@@ -203,7 +217,8 @@ const EventForm = ({ onSubmit, loading = false }) => {
   const [formData, setFormData] = useState({
     name: '',
     date: '',
-    organizer: '', // Ensure this is initialized as empty string
+    organizer: '',
+    description: '',
     image: null,
   })
   const [errors, setErrors] = useState({})
@@ -219,7 +234,6 @@ const EventForm = ({ onSubmit, loading = false }) => {
     if (name === 'image') {
       setFormData((prev) => ({ ...prev, [name]: files[0] }))
     } else {
-      // Ensure we're setting a string value, not undefined
       setFormData((prev) => ({ ...prev, [name]: value || '' }))
     }
 
@@ -246,14 +260,54 @@ const EventForm = ({ onSubmit, loading = false }) => {
       newErrors.organizer = 'Organizer name is required'
     }
 
-    if (!formData.image) {
-      newErrors.image = 'Event image is required'
-    }
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault()
+
+  //   if (!validateForm()) {
+  //     return
+  //   }
+
+  //   try {
+  //     await onSubmit(formData)
+  //     setNotification({
+  //       show: true,
+  //       message: 'Event created successfully!',
+  //       type: 'success',
+  //     })
+
+  //     // Reset form
+  //     setFormData({
+  //       name: '',
+  //       date: '',
+  //       organizer: '',
+  //       description: '',
+  //       image: null,
+  //     })
+
+  //     // Reset the file input
+  //     const fileInput = document.getElementById('image')
+  //     if (fileInput) {
+  //       fileInput.value = ''
+  //     }
+
+  //     // Hide notification after 3 seconds
+  //     setTimeout(
+  //       () => setNotification({ show: false, message: '', type: '' }),
+  //       3000
+  //     )
+  //   } catch (error) {
+  //     setNotification({
+  //       show: true,
+  //       message: error.message || 'Failed to create event',
+  //       type: 'error',
+  //     })
+  //   }
+  // }
+  // EventForm.jsx - Update the handleSubmit function
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -262,18 +316,31 @@ const EventForm = ({ onSubmit, loading = false }) => {
     }
 
     try {
-      await onSubmit(formData)
+      // Create FormData to handle file upload
+      const submitData = new FormData()
+      submitData.append('name', formData.name)
+      submitData.append('date', formData.date)
+      submitData.append('organizer', formData.organizer)
+      submitData.append('description', formData.description)
+
+      if (formData.image) {
+        submitData.append('image', formData.image)
+      }
+
+      await onSubmit(submitData) // Pass FormData instead of regular object
+
       setNotification({
         show: true,
         message: 'Event created successfully!',
         type: 'success',
       })
 
-      // Reset form - ensure all fields are set to empty strings
+      // Reset form
       setFormData({
         name: '',
         date: '',
         organizer: '',
+        description: '',
         image: null,
       })
 
@@ -296,7 +363,6 @@ const EventForm = ({ onSubmit, loading = false }) => {
       })
     }
   }
-
   return (
     <div className="event-form-container">
       <Notification
@@ -362,8 +428,24 @@ const EventForm = ({ onSubmit, loading = false }) => {
         </div>
 
         <div className="form-group">
+          <label htmlFor="description" className="form-label">
+            Description
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            className="form-input"
+            placeholder="Enter event description (optional)"
+            rows="3"
+            disabled={loading}
+          />
+        </div>
+
+        <div className="form-group">
           <label htmlFor="image" className="form-label">
-            Event Image *
+            Event Image
           </label>
           <input
             type="file"

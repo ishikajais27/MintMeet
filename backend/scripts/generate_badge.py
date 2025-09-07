@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-import sys
 import os
-from PIL import Image, ImageDraw, ImageFont
+import sys
 import textwrap
 import uuid
+
+from PIL import Image, ImageDraw, ImageFont
+
 
 def generate_badge(template_path, attendee_name, event_name):
     try:
@@ -55,6 +57,10 @@ def generate_badge(template_path, attendee_name, event_name):
         draw.text(date_position, date_text, font=font_small, fill=(255, 255, 255))
         
         # Save the generated badge
+        # output_dir = "uploads/generated_badges"
+        # os.makedirs(output_dir, exist_ok=True)
+        # output_filename = f"{uuid.uuid4().hex}.png"
+        # output_path = os.path.join(output_dir, output_filename)
         output_dir = "uploads/generated_badges"
         os.makedirs(output_dir, exist_ok=True)
         output_filename = f"{uuid.uuid4().hex}.png"
@@ -62,8 +68,8 @@ def generate_badge(template_path, attendee_name, event_name):
         
         img.save(output_path)
         
-        return output_path
-        
+        # return output_path
+        return f"/generated_badges/{output_filename}"
     except Exception as e:
         print(f"Error generating badge: {str(e)}")
         return None
@@ -84,3 +90,4 @@ if __name__ == "__main__":
     else:
         print("ERROR: Failed to generate badge")
         sys.exit(1)
+

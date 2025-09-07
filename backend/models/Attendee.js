@@ -58,6 +58,10 @@ const attendeeSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  badgeImage: {
+    type: String, // URL to the generated badge image
+    default: null,
+  },
 })
 
 // Index for better query performance

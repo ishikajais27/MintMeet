@@ -1,48 +1,3 @@
-// const express = require('express')
-// const router = express.Router()
-// const {
-//   registerAttendee,
-//   getAttendeesByEvent,
-//   getAttendeeById,
-//   updateAttendee,
-//   deleteAttendee,
-//   markAttendance,
-//   processCSV,
-//   exportAttendees,
-// } = require('../controllers/attendeeController')
-// const { validateAttendee } = require('../middleware/validation')
-// const { uploadCSV, handleUploadError } = require('../middleware/upload')
-
-// // Register a new attendee
-// router.post('/', validateAttendee, registerAttendee)
-
-// // Process CSV for bulk registration
-// router.post(
-//   '/csv-upload',
-//   uploadCSV.single('csvFile'),
-//   handleUploadError,
-//   processCSV
-// )
-
-// // Get all attendees for an event
-// router.get('/event/:eventId', getAttendeesByEvent)
-
-// // Export attendees to CSV
-// router.get('/export/:eventId', exportAttendees)
-
-// // Get a specific attendee by ID
-// router.get('/:id', getAttendeeById)
-
-// // Update an attendee
-// router.put('/:id', updateAttendee)
-
-// // Delete an attendee
-// router.delete('/:id', deleteAttendee)
-
-// // Mark attendance for an attendee
-// router.patch('/:id/attendance', markAttendance)
-
-// module.exports = router
 const express = require('express')
 const router = express.Router()
 const {
@@ -58,10 +13,8 @@ const {
 const { validateAttendee } = require('../middleware/validation')
 const { uploadCSV, handleUploadError } = require('../middleware/upload')
 
-// Register a new attendee
-router.post('/', validateAttendee, registerAttendee)
-
-// Process CSV for bulk registration
+// IMPORTANT: CSV upload route should be defined BEFORE body parsers
+// Process CSV for bulk registration - this should be the first route
 router.post(
   '/csv-upload',
   uploadCSV.single('csvFile'),
@@ -69,22 +22,41 @@ router.post(
   processCSV
 )
 
-// Get all attendees for an event
+// Add this route for testing uploads
+router.post(
+  '/test-upload',
+  uploadCSV.single('csvFile'),
+  handleUploadError,
+  (req, res) => {
+    try {
+      console.log('Test upload received')
+      console.log('File:', req.file)
+      console.log('Body:', req.body)
+
+      res.status(200).json({
+        success: true,
+        message: 'Upload test successful',
+        file: req.file,
+        body: req.body,
+      })
+    } catch (error) {
+      console.error('Test upload error:', error)
+      res.status(500).json({
+        success: false,
+        message: 'Test upload failed',
+        error: error.message,
+      })
+    }
+  }
+)
+// Other routes that use body parsers
+router.post('/', validateAttendee, registerAttendee)
 router.get('/event/:eventId', getAttendeesByEvent)
-
-// Export attendees to CSV
 router.get('/export/:eventId', exportAttendees)
-
-// Get a specific attendee by ID
 router.get('/:id', getAttendeeById)
-
-// Update an attendee
 router.put('/:id', updateAttendee)
-
-// Delete an attendee
 router.delete('/:id', deleteAttendee)
-
-// Mark attendance for an attendee
+router.patch('/:id/attendance/toggle', markAttendance)
 router.patch('/:id/attendance', markAttendance)
 
 // Add a GET handler for the root endpoint

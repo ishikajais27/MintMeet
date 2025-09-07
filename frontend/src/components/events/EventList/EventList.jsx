@@ -4,6 +4,9 @@
 // import './EventList.css'
 
 // const EventList = ({ events, loading, error }) => {
+//   // Handle both response formats: events.data or events array
+//   const eventList = events?.data || events || []
+
 //   if (loading) {
 //     return (
 //       <div className="event-list-loading">
@@ -21,7 +24,7 @@
 //     )
 //   }
 
-//   if (events.length === 0) {
+//   if (eventList.length === 0) {
 //     return (
 //       <div className="event-list-empty">
 //         <div className="empty-state">
@@ -37,7 +40,7 @@
 //   return (
 //     <div className="event-list">
 //       <div className="event-list__grid">
-//         {events.map((event) => (
+//         {eventList.map((event) => (
 //           <EventCard key={event._id} event={event} />
 //         ))}
 //       </div>
@@ -51,11 +54,9 @@ import EventCard from '../EventCard/EventCard'
 import Loader from '../../common/Loader/Loader'
 import './EventList.css'
 
-const EventList = ({ events, loading, error }) => {
+const EventList = ({ events, loading, error, onDeleteEvent }) => {
   // Handle both response formats: events.data or events array
-  const eventList = Array.isArray(events)
-    ? events
-    : events?.data || events || []
+  const eventList = events?.data || events || []
 
   if (loading) {
     return (
@@ -91,7 +92,12 @@ const EventList = ({ events, loading, error }) => {
     <div className="event-list">
       <div className="event-list__grid">
         {eventList.map((event) => (
-          <EventCard key={event._id} event={event} />
+          <EventCard
+            key={event._id}
+            event={event}
+            onDelete={onDeleteEvent}
+            showDeleteButton={true}
+          />
         ))}
       </div>
     </div>

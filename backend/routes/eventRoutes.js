@@ -1,3 +1,40 @@
+// // const express = require('express')
+// // const router = express.Router()
+// // const {
+// //   createEvent,
+// //   getAllEvents,
+// //   getEventById,
+// //   updateEvent,
+// //   deleteEvent,
+// //   uploadEventImage, // Make sure this is imported
+// // } = require('../controllers/eventController')
+// // const { validateEvent } = require('../middleware/validation')
+// // const { uploadImage, handleUploadError } = require('../middleware/upload')
+
+// // // Create a new event
+// // router.post('/', validateEvent, createEvent)
+
+// // // Get all events
+// // router.get('/', getAllEvents)
+
+// // // Get a specific event by ID
+// // router.get('/:id', getEventById)
+
+// // // Update an event
+// // router.put('/:id', validateEvent, updateEvent)
+
+// // // Delete an event
+// // router.delete('/:id', deleteEvent)
+
+// // // Upload event image
+// // router.post(
+// //   '/:id/image',
+// //   uploadImage.single('image'),
+// //   handleUploadError,
+// //   uploadEventImage // This should now work correctly
+// // )
+
+// // module.exports = router
 // const express = require('express')
 // const router = express.Router()
 // const {
@@ -11,21 +48,34 @@
 // const { validateEvent } = require('../middleware/validation')
 // const { uploadImage, handleUploadError } = require('../middleware/upload')
 
+// // Add route logging middleware
+// router.use((req, res, next) => {
+//   console.log(`Event Route: ${req.method} ${req.path}`)
+//   next()
+// })
+
 // // Create a new event
 // router.post('/', validateEvent, createEvent)
 
 // // Get all events
 // router.get('/', getAllEvents)
 
-// // Get a specific event by ID
-// router.get('/:id', getEventById)
+// // Get a specific event by ID - Add detailed logging
+// router.get(
+//   '/:id',
+//   (req, res, next) => {
+//     console.log('GET /api/events/:id called with ID:', req.params.id)
+//     next()
+//   },
+//   getEventById
+// )
 
 // // Update an event
 // router.put('/:id', validateEvent, updateEvent)
 
 // // Delete an event
 // router.delete('/:id', deleteEvent)
-
+// router.post('/', uploadImage.single('image'), handleUploadError, createEvent)
 // // Upload event image
 // router.post(
 //   '/:id/image',
@@ -43,19 +93,38 @@ const {
   getEventById,
   updateEvent,
   deleteEvent,
-  uploadEventImage, // Make sure this is imported
+  uploadEventImage,
 } = require('../controllers/eventController')
 const { validateEvent } = require('../middleware/validation')
 const { uploadImage, handleUploadError } = require('../middleware/upload')
 
-// Create a new event
-router.post('/', validateEvent, createEvent)
+// Add route logging middleware
+router.use((req, res, next) => {
+  console.log(`Event Route: ${req.method} ${req.path}`)
+  next()
+})
+
+// Create a new event - REORDER THE MIDDLEWARE
+router.post(
+  '/',
+  uploadImage.single('image'),
+  handleUploadError,
+  validateEvent,
+  createEvent
+)
 
 // Get all events
 router.get('/', getAllEvents)
 
-// Get a specific event by ID
-router.get('/:id', getEventById)
+// Get a specific event by ID - Add detailed logging
+router.get(
+  '/:id',
+  (req, res, next) => {
+    console.log('GET /api/events/:id called with ID:', req.params.id)
+    next()
+  },
+  getEventById
+)
 
 // Update an event
 router.put('/:id', validateEvent, updateEvent)
@@ -68,7 +137,7 @@ router.post(
   '/:id/image',
   uploadImage.single('image'),
   handleUploadError,
-  uploadEventImage // This should now work correctly
+  uploadEventImage
 )
 
 module.exports = router

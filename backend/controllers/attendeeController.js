@@ -3,24 +3,43 @@ const Event = require('../models/Event')
 const csv = require('csv-parser')
 const fs = require('fs')
 const path = require('path')
+const mongoose = require('mongoose')
 const {
   generateApiResponse,
   isValidEthereumAddress,
 } = require('../utils/helpers')
 
+// controllers/attendeeController.js
 const processCSV = async (req, res) => {
+  let filePath = null
+
   try {
+    console.log('CSV Upload Request received:')
     const { eventId } = req.body
+    console.log('Processing CSV for event:', eventId)
 
     if (!req.file) {
+      console.log('No file uploaded')
       return res
         .status(400)
         .json(generateApiResponse(false, 'CSV file is required', null))
     }
-
+    if (!eventId) {
+      console.log('Event ID is required')
+      return res
+        .status(400)
+        .json(generateApiResponse(false, 'Event ID is required', null))
+    }
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      console.log('Invalid Event ID format:', eventId)
+      return res
+        .status(400)
+        .json(generateApiResponse(false, 'Invalid Event ID format', null))
+    }
     // Check if event exists
     const event = await Event.findById(eventId)
     if (!event || !event.isActive) {
+      console.log('Event not found or inactive:', eventId)
       return res
         .status(404)
         .json(generateApiResponse(false, 'Event not found or inactive', null))
@@ -28,15 +47,63 @@ const processCSV = async (req, res) => {
 
     const results = []
     const errors = []
-    const filePath = req.file.path
+    filePath = req.file.path
 
-    // Process CSV file
+    console.log('Processing CSV file:', filePath)
+
+    // Process CSV file with better configuration
     await new Promise((resolve, reject) => {
       fs.createReadStream(filePath)
-        .pipe(csv())
+        .pipe(
+          csv({
+            mapHeaders: ({ header, index }) => header.trim(),
+            mapValues: ({ value, index }) => value.trim(),
+            skipLines: 0, // Don't skip any lines
+            strict: false, // Be more lenient with parsing
+          })
+        )
         .on('data', (data) => {
-          // Validate required fields
-          if (!data.name || !data.email) {
+          console.log('CSV row data:', JSON.stringify(data, null, 2))
+
+          // Handle different column name variations
+          const name =
+            data.name ||
+            data.Name ||
+            data.NAME ||
+            data['Attendee Name'] ||
+            data['ATTENDEE NAME'] ||
+            data['Full Name'] ||
+            data['FULL NAME']
+
+          const email =
+            data.email ||
+            data.Email ||
+            data.EMAIL ||
+            data['Email Address'] ||
+            data['EMAIL ADDRESS'] ||
+            data['E-mail'] ||
+            data['E-MAIL']
+
+          const walletAddress =
+            data.walletAddress ||
+            data.wallet ||
+            data.Wallet ||
+            data.WALLET_ADDRESS ||
+            data['Wallet Address'] ||
+            data['WALLET ADDRESS'] ||
+            data.address ||
+            data.Address
+
+          console.log(
+            'Extracted - Name:',
+            name,
+            'Email:',
+            email,
+            'Wallet:',
+            walletAddress
+          )
+
+          if (!name || !email) {
             errors.push({
               row: results.length + 1,
               error: 'Missing required fields (name, email)',
@@ -47,7 +114,7 @@ const processCSV = async (req, res) => {
 
           // Validate email format
           const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/
-          if (!emailRegex.test(data.email)) {
+          if (!emailRegex.test(email)) {
             errors.push({
               row: results.length + 1,
               error: 'Invalid email format',
@@ -57,10 +124,7 @@ const processCSV = async (req, res) => {
           }
 
           // Validate wallet address if provided
-          if (
-            data.walletAddress &&
-            !isValidEthereumAddress(data.walletAddress)
-          ) {
+          if (walletAddress && !isValidEthereumAddress(walletAddress)) {
             errors.push({
               row: results.length + 1,
               error: 'Invalid Ethereum wallet address',
@@ -70,17 +134,23 @@ const processCSV = async (req, res) => {
           }
 
           results.push({
-            name: data.name.trim(),
-            email: data.email.toLowerCase().trim(),
-            walletAddress: data.walletAddress
-              ? data.walletAddress.trim()
-              : null,
+            name: name.trim(),
+            email: email.toLowerCase().trim(),
+            walletAddress: walletAddress ? walletAddress.trim() : null,
             eventId,
           })
         })
-        .on('end', resolve)
-        .on('error', reject)
+        .on('end', () => {
+          console.log('CSV parsing completed. Total rows:', results.length)
+          resolve()
+        })
+        .on('error', (error) => {
+          console.error('CSV parsing error:', error)
+          reject(error)
+        })
     })
+
+    console.log('CSV parsed successfully. Rows:', results.length)
 
     // Process each attendee
     const processedAttendees = []
@@ -110,7 +180,18 @@ const processCSV = async (req, res) => {
         })
       }
     }
-    fs.unlinkSync(filePath)
+
+    // Clean up the uploaded file
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath)
+    }
+
+    console.log(
+      'CSV processing completed. Processed:',
+      processedAttendees.length,
+      'Errors:',
+      errors.length
+    )
 
     res.status(201).json(
       generateApiResponse(true, 'CSV processing completed', {
@@ -124,8 +205,8 @@ const processCSV = async (req, res) => {
     console.error('Error processing CSV:', error)
 
     // Clean up file on error
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path)
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath)
     }
 
     res
@@ -135,8 +216,6 @@ const processCSV = async (req, res) => {
       )
   }
 }
-
-// Export attendees to CSV
 const exportAttendees = async (req, res) => {
   try {
     const { eventId } = req.params
@@ -390,38 +469,82 @@ const deleteAttendee = async (req, res) => {
 }
 
 // Mark attendance for an attendee
+// const markAttendance = async (req, res) => {
+//   try {
+//     const { id } = req.params
+
+//     const attendee = await Attendee.findByIdAndUpdate(
+//       id,
+//       {
+//         hasAttended: true,
+//         attendedAt: Date.now(),
+//       },
+//       { new: true }
+//     ).select('-__v')
+
+//     if (!attendee) {
+//       return res
+//         .status(404)
+//         .json(generateApiResponse(false, 'Attendee not found', null))
+//     }
+
+//     res
+//       .status(200)
+//       .json(
+//         generateApiResponse(true, 'Attendance marked successfully', attendee)
+//       )
+//   } catch (error) {
+//     console.error('Error marking attendance:', error)
+//     res
+//       .status(500)
+//       .json(
+//         generateApiResponse(
+//           false,
+//           'Failed to mark attendance',
+//           null,
+//           error.message
+//         )
+//       )
+//   }
+//}
 const markAttendance = async (req, res) => {
   try {
     const { id } = req.params
 
-    const attendee = await Attendee.findByIdAndUpdate(
-      id,
-      {
-        hasAttended: true,
-        attendedAt: Date.now(),
-      },
-      { new: true }
-    ).select('-__v')
-
+    const attendee = await Attendee.findById(id)
     if (!attendee) {
       return res
         .status(404)
         .json(generateApiResponse(false, 'Attendee not found', null))
     }
 
+    // Toggle attendance status
+    const updatedAttendee = await Attendee.findByIdAndUpdate(
+      id,
+      {
+        hasAttended: !attendee.hasAttended,
+        attendedAt: !attendee.hasAttended ? Date.now() : null,
+      },
+      { new: true, runValidators: true }
+    ).select('-__v')
+
     res
       .status(200)
       .json(
-        generateApiResponse(true, 'Attendance marked successfully', attendee)
+        generateApiResponse(
+          true,
+          'Attendance updated successfully',
+          updatedAttendee
+        )
       )
   } catch (error) {
-    console.error('Error marking attendance:', error)
+    console.error('Error updating attendance:', error)
     res
       .status(500)
       .json(
         generateApiResponse(
           false,
-          'Failed to mark attendance',
+          'Failed to update attendance',
           null,
           error.message
         )

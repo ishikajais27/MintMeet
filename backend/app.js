@@ -17,7 +17,7 @@ const { validateEvent, validateAttendee } = require('./middleware/validation')
 // Import routes
 const eventRoutes = require('./routes/eventRoutes')
 const attendeeRoutes = require('./routes/attendeeRoutes')
-const mintRoutes = require('./routes/mintRoutes') // Add mint routes
+const mintRoutes = require('./routes/mintRoutes')
 
 // Connect to MongoDB
 if (process.env.NODE_ENV !== 'test') {
@@ -29,21 +29,66 @@ if (process.env.NODE_ENV !== 'test') {
     .then(() => console.log('MongoDB connected successfully'))
     .catch((err) => console.error('MongoDB connection error:', err))
 }
-// Middleware
+
+// Middleware - FIXED CORS configuration
 app.use(helmet())
 app.use(morgan('combined'))
 app.use(
   cors({
-    origin: FRONTEND_URL,
+    origin: function (origin, callback) {
+      // Allow requests from localhost with any port and any protocol
+      const allowedOrigins = [
+        'http://localhost:5173',
+        'http://localhost:5173/',
+        'http://localhost:3000',
+        'http://localhost:3000/',
+        'https://localhost:5173',
+        'https://localhost:5173/',
+      ]
+
+      // Allow requests with no origin (like mobile apps, Postman, etc.)
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true)
+      } else {
+        console.log('CORS blocked origin:', origin)
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   })
 )
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
 // Serve static files from uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
-
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+app.use(
+  '/uploads',
+  express.static(path.join(__dirname, 'uploads'), {
+    setHeaders: (res, path) => {
+      // Allow requests from your frontend origin
+      res.setHeader(
+        'Access-Control-Allow-Origin',
+        FRONTEND_URL || 'http://localhost:5173'
+      )
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+    },
+  })
+)
+app.use(
+  '/generated_badges',
+  express.static(path.join(__dirname, 'uploads/generated_badges'), {
+    setHeaders: (res, path) => {
+      res.setHeader(
+        'Access-Control-Allow-Origin',
+        FRONTEND_URL || 'http://localhost:5173'
+      )
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+    },
+  })
+)
 // Basic route for health check
 app.get('/api/health', (req, res) => {
   res.status(200).json({
@@ -71,11 +116,21 @@ app.get('/', (req, res) => {
 // API routes
 app.use('/api/events', eventRoutes)
 app.use('/api/attendees', attendeeRoutes)
-app.use('/api/mint', mintRoutes) // Add mint routes
+app.use('/api/mint', mintRoutes)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error Stack:', err.stack)
+
+  // CORS error
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({
+      success: false,
+      message: 'CORS Error: Request not allowed',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined,
+    })
+  }
 
   // Mongoose validation error
   if (err.name === 'ValidationError') {
@@ -112,6 +167,14 @@ app.use((err, req, res, next) => {
     success: false,
     message: err.message || 'Internal Server Error',
     error: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+  })
+})
+
+// Handle 404 routes
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'API endpoint not found',
   })
 })
 

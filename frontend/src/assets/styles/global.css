@@ -1,3 +1,4 @@
+/* src/assets/styles/global.css */
 /* CSS Reset */
 *,
 *::before,
@@ -15,6 +16,9 @@ body {
   -webkit-font-smoothing: antialiased;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
     'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  overflow-x: hidden;
 }
 
 img,
@@ -70,4 +74,77 @@ body {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* Content Styles with improved visibility on dark background */
+.content__title {
+  font-family: 'Playfair Display', serif;
+  font-size: 10vw;
+  font-weight: normal;
+  color: var(--color-title);
+  text-align: center;
+  margin: 0;
+  pointer-events: none;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.content__subtitle {
+  font-size: 1.25em;
+  background: var(--color-subtitle-bg);
+  color: var(--color-subtitle);
+  padding: 0.45em 0.5em;
+  line-height: 1;
+  margin: 0;
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+/* Ensure content cards are visible on dark background */
+.card,
+.feature-card,
+.event-card,
+.stat-card,
+.create-event-content,
+.batch-results {
+  background-color: rgba(30, 30, 30, 0.9) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+}
+
+/* Button styles for dark background */
+.btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+}
+
+.btn-outline:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+@media screen and (max-width: 55em) {
+  .content__title {
+    font-size: 3em;
+  }
+  .content__subtitle {
+    font-size: 0.85em;
+  }
 }

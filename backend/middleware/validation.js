@@ -1,5 +1,6 @@
 const validator = require('validator')
 
+// In middleware/validation.js
 const validateEvent = (req, res, next) => {
   const { name, date, organizer } = req.body
   const errors = []
@@ -11,11 +12,14 @@ const validateEvent = (req, res, next) => {
     errors.push('Event name must be between 1 and 100 characters')
   }
 
-  // Validate date
-  if (!date || !validator.isISO8601(date)) {
-    errors.push('Valid event date is required (ISO format)')
-  } else if (new Date(date) < new Date()) {
-    errors.push('Event date must be in the future')
+  // Validate date - more flexible date validation
+  if (!date) {
+    errors.push('Event date is required')
+  } else {
+    const parsedDate = new Date(date)
+    if (isNaN(parsedDate.getTime())) {
+      errors.push('Valid event date is required')
+    }
   }
 
   // Validate organizer

@@ -1,84 +1,3 @@
-// import api from './api'
-
-// export const attendeeService = {
-//   // Get attendees for an event
-//   getAttendees: async (eventId) => {
-//     try {
-//       console.log(`Fetching attendees for event: ${eventId}`)
-
-//       // Simulate API call delay
-//       await new Promise((resolve) => setTimeout(resolve, 800))
-
-//       // Mock data - replace with actual API call later
-//       const mockAttendees = [
-//         {
-//           _id: '1',
-//           eventId,
-//           name: 'John Doe',
-//           email: 'john@example.com',
-//           walletAddress: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
-//           status: 'registered',
-//           registeredAt: '2023-11-10T10:00:00Z',
-//         },
-//         {
-//           _id: '2',
-//           eventId,
-//           name: 'Jane Smith',
-//           email: 'jane@example.com',
-//           walletAddress: '0x742d35Cc6634C0532925a3b844Bc454e4438f44f',
-//           status: 'registered',
-//           registeredAt: '2023-11-10T11:30:00Z',
-//         },
-//       ]
-
-//       return { data: mockAttendees }
-
-//       // Actual API call (uncomment when backend is ready)
-//       // return await api.get(`/events/${eventId}/attendees`);
-//     } catch (error) {
-//       console.error('Error fetching attendees:', error)
-//       throw error
-//     }
-//   },
-
-//   // Add attendees via CSV
-//   addAttendees: async (eventId, attendeesData) => {
-//     try {
-//       console.log(`Adding attendees to event: ${eventId}`, attendeesData)
-
-//       // Simulate API call delay
-//       await new Promise((resolve) => setTimeout(resolve, 1000))
-
-//       // Mock response - replace with actual API call later
-//       const mockResponse = {
-//         data: {
-//           success: true,
-//           message: 'Attendees added successfully',
-//           count: attendeesData.length,
-//         },
-//       }
-
-//       return mockResponse
-
-//       // Actual API call (uncomment when backend is ready)
-//       // return await api.post(`/events/${eventId}/attendees/batch`, attendeesData);
-//     } catch (error) {
-//       console.error('Error adding attendees:', error)
-//       throw error
-//     }
-//   },
-
-//   // Register single attendee
-//   registerAttendee: async (eventId, attendeeData) => {
-//     try {
-//       console.log(`Registering attendee for event: ${eventId}`, attendeeData)
-//       // Actual implementation will go here
-//     } catch (error) {
-//       console.error('Error registering attendee:', error)
-//       throw error
-//     }
-//   },
-// }
 import api from './api'
 
 export const attendeeService = {
@@ -89,6 +8,12 @@ export const attendeeService = {
       return response.data
     } catch (error) {
       console.error('Error fetching attendees:', error)
+      // Enhanced error handling
+      if (error.response?.data) {
+        throw new Error(
+          error.response.data.message || 'Failed to fetch attendees'
+        )
+      }
       throw error
     }
   },
@@ -100,24 +25,108 @@ export const attendeeService = {
       return response.data
     } catch (error) {
       console.error('Error registering attendee:', error)
+      if (error.response?.data) {
+        throw new Error(
+          error.response.data.message || 'Failed to register attendee'
+        )
+      }
       throw error
     }
   },
 
   // Add attendees via CSV
-  addAttendees: async (csvFile) => {
+  // addAttendees: async (formData) => {
+  //   try {
+  //     const response = await api.post('/api/attendees/csv-upload', formData, {
+  //       headers: {
+  //         'Content-Type': 'multipart/form-data',
+  //       },
+  //       timeout: 30000, // 30 second timeout for large files
+  //     })
+  //     return response.data
+  //   } catch (error) {
+  //     console.error('Error adding attendees via CSV:', error)
+  //     if (error.response?.data) {
+  //       throw new Error(error.response.data.message || 'Failed to upload CSV')
+  //     }
+  //     throw error
+  //   }
+  // },
+  // In attendeeService.js - completely replace addAttendees function
+  addAttendees: async (formData) => {
     try {
-      const formData = new FormData()
-      formData.append('csvFile', csvFile)
-
+      console.log('Sending CSV upload request...')
       const response = await api.post('/api/attendees/csv-upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        timeout: 60000,
       })
+
+      console.log('CSV upload response:', response.data)
       return response.data
     } catch (error) {
-      console.error('Error adding attendees via CSV:', error)
+      console.error('Detailed CSV upload error:', error)
+
+      // Get detailed error information
+      const errorData = error.response?.data
+      const status = error.response?.status
+      const statusText = error.response?.statusText
+
+      let errorMessage = 'Failed to process CSV file'
+
+      if (errorData) {
+        if (typeof errorData === 'object') {
+          errorMessage =
+            errorData.message || errorData.error || JSON.stringify(errorData)
+        } else {
+          errorMessage = errorData
+        }
+      } else if (status) {
+        errorMessage = `Server error: ${status} ${statusText}`
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Request timeout. Please try a smaller file.'
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+
+      console.error('Error message:', errorMessage)
+      throw new Error(errorMessage)
+    }
+  },
+
+  // Mark attendance
+  // markAttendance: async (attendeeId) => {
+  //   try {
+  //     const response = await api.patch(
+  //       `/api/attendees/${attendeeId}/attendance`
+  //     )
+  //     return response.data
+  //   } catch (error) {
+  //     console.error('Error marking attendance:', error)
+  //     if (error.response?.data) {
+  //       throw new Error(
+  //         error.response.data.message || 'Failed to mark attendance'
+  //       )
+  //     }
+  //     throw error
+  //   }
+  // },
+  // Mark attendance (toggle)
+  markAttendance: async (attendeeId, currentStatus) => {
+    try {
+      const response = await api.patch(
+        `/api/attendees/${attendeeId}/attendance/toggle`,
+        { currentStatus }
+      )
+      return response.data
+    } catch (error) {
+      console.error('Error marking attendance:', error)
+      if (error.response?.data) {
+        throw new Error(
+          error.response.data.message || 'Failed to mark attendance'
+        )
+      }
       throw error
     }
   },
@@ -131,6 +140,11 @@ export const attendeeService = {
       return response.data
     } catch (error) {
       console.error('Error exporting attendees:', error)
+      if (error.response?.data) {
+        throw new Error(
+          error.response.data.message || 'Failed to export attendees'
+        )
+      }
       throw error
     }
   },
@@ -142,6 +156,11 @@ export const attendeeService = {
       return response.data
     } catch (error) {
       console.error('Error fetching attendee:', error)
+      if (error.response?.data) {
+        throw new Error(
+          error.response.data.message || 'Failed to fetch attendee'
+        )
+      }
       throw error
     }
   },
@@ -156,6 +175,11 @@ export const attendeeService = {
       return response.data
     } catch (error) {
       console.error('Error updating attendee:', error)
+      if (error.response?.data) {
+        throw new Error(
+          error.response.data.message || 'Failed to update attendee'
+        )
+      }
       throw error
     }
   },
@@ -167,19 +191,11 @@ export const attendeeService = {
       return response.data
     } catch (error) {
       console.error('Error deleting attendee:', error)
-      throw error
-    }
-  },
-
-  // Mark attendance
-  markAttendance: async (attendeeId) => {
-    try {
-      const response = await api.patch(
-        `/api/attendees/${attendeeId}/attendance`
-      )
-      return response.data
-    } catch (error) {
-      console.error('Error marking attendance:', error)
+      if (error.response?.data) {
+        throw new Error(
+          error.response.data.message || 'Failed to delete attendee'
+        )
+      }
       throw error
     }
   },
